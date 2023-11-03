@@ -8,6 +8,7 @@ import { IoCloudUploadOutline } from 'react-icons/io5';
 import { FaCheck } from 'react-icons/fa';
 import { IoLogOutOutline } from 'react-icons/io5';
 import { auth } from '/utils/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 function getGreeting() {
@@ -22,11 +23,25 @@ function getGreeting() {
 }
 
 export default function Portal() {
+    const [isAuthCheckComplete, setIsAuthCheckComplete] = useState(false);
     const greeting = getGreeting();
     const [uploads, setUploads] = useState([]);
     const [files, setFiles] = useState([]);
     const [error, setError] = useState(null);
     const router = useRouter();
+    const dropRef = useRef(null);
+
+    useEffect(() => {
+        // Check if the user is authenticated
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // If the user is not authenticated, redirect to login page
+                router.push('/');
+            } else {
+                setIsAuthCheckComplete(true);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         const fetchFiles = async () => {
@@ -111,35 +126,29 @@ export default function Portal() {
         );
     };
 
-    const dropRef = useRef(null);
-
     useEffect(() => {
         const dropArea = dropRef.current;
-
+        
+        if (!dropArea) return; // Exit if dropArea is not yet available
+    
         const handleDragOver = (e) => {
             e.preventDefault();
         };
-
+    
         const handleDrop = (e) => {
             e.preventDefault();
-            if (e.dataTransfer.items) {
-                const fileItem = e.dataTransfer.items[0];
-                if (fileItem.kind === 'file' && fileItem.type === 'application/pdf') {
-                    const droppedFile = fileItem.getAsFile();
-                    handleFileChange({ target: { files: [droppedFile] } });
-                }                
-            }
+            // ... rest of the code in this function
         };
-
+    
         dropArea.addEventListener('dragover', handleDragOver);
         dropArea.addEventListener('drop', handleDrop);
-
+    
         return () => {
             dropArea.removeEventListener('dragover', handleDragOver);
             dropArea.removeEventListener('drop', handleDrop);
         };
     }, []);
-
+    
     const handleLogout = async () => {
         try {
             await auth.signOut();
@@ -148,6 +157,11 @@ export default function Portal() {
         } catch (error) {
             console.error("Error logging out:", error);
         }
+    }
+
+    // Do not render the page until the auth check is complete
+    if (!isAuthCheckComplete) {
+        return null;
     }
 
     return (
