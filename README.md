@@ -26,7 +26,7 @@ BBW Assets is a simple, supplementary web portal designed to support SwiftScan, 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/bbw-asset-manager.git
+    git clone https://github.com/ethanvillalobos8/bbw-asset-manager.git
     ```
 
 2. Navigate to the project directory:
